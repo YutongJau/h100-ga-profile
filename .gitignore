@@ -1,0 +1,19 @@
+# Runtime outputs
+h100_profile_outputs_*/
+h100_profile_oxford_*/
+h100_profile_smoke/
+logs/
+telemetry/
+*.json
+*.out
+*.err
+*.log
+*.csv
+*.txt
+
+# Python/cache
+__pycache__/
+*.pyc
+
+# Local archives
+*.tar.gz
