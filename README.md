@@ -1,15 +1,20 @@
 # H100 GPT-2 Large GA Timing Test
 
-This repository measures the GPU time for GPT-2 Large training steps with
-different gradient accumulation values. It is meant to be easy to run on a new
-H100 machine or cluster.
+Hi, thank you so much for helping me run this. This is a small,
+self-contained timing test for GPT-2 Large training steps with different
+gradient accumulation values.
 
-You do not need any dataset, HuggingFace token, or SimAI code. The script builds
-GPT-2 Large from configuration and uses synthetic input tokens.
+I tried to make the instructions below copy-pasteable. You do not need any
+SimAI code, dataset, or HuggingFace token. The script builds GPT-2 Large from
+configuration and uses synthetic input tokens.
+
+If anything looks weird or fails, please do not spend ages debugging it. Just
+send me the output/logs and I can figure it out from there. You are already
+saving me a lot here.
 
 ## What I Need From You
 
-Please run the commands below on an H100 GPU machine and send back:
+Could you please run the commands below on an H100 GPU machine and send back:
 
 1. The final output tarball, for example:
 
@@ -17,7 +22,7 @@ Please run the commands below on an H100 GPU machine and send back:
    h100_profile_<host>_<date>.tar.gz
    ```
 
-2. If the tarball is too large, send these files instead:
+2. If the tarball is too large, these files are enough:
 
    ```text
    h100_profile_*/summary.csv
@@ -32,23 +37,26 @@ Please run the commands below on an H100 GPU machine and send back:
 
 3. Also copy-paste the final terminal output from the summary command.
 
-## Step 0: Get Onto a GPU Node
+That is all I need. The tarball is easiest if it works.
 
-Run this on a compute node with an H100 GPU, not on a login node.
+## Step 0: Get Onto an H100 GPU Node
 
-First check that the machine can see a GPU:
+Please run this on a compute node with an H100 GPU, not on a login node.
+
+First, check that the machine can see the GPU:
 
 ```bash
 nvidia-smi -L
 ```
 
-Expected output should mention something like:
+The output should mention something like:
 
 ```text
 NVIDIA H100
 ```
 
-If it does not show an H100, stop and tell me what it printed.
+If it does not mention H100, no worries. Please send me what it printed and do
+not bother running the rest yet.
 
 ## Step 1: Download the Test Code
 
@@ -59,7 +67,7 @@ cd h100-ga-profile
 
 ## Step 2: Check Python and PyTorch
 
-Run:
+Please run this quick environment check:
 
 ```bash
 python3 - <<'PY'
@@ -81,8 +89,14 @@ except Exception as e:
 PY
 ```
 
-If `torch` or `transformers` is missing, install them in your environment. One
-simple option is:
+What I am hoping to see is roughly:
+
+```text
+cuda available True
+gpu NVIDIA H100 ...
+```
+
+If `torch` or `transformers` is missing, one simple install option is:
 
 ```bash
 python3 -m pip install --upgrade pip
@@ -91,18 +105,13 @@ python3 -m pip install torch transformers
 
 Then run the Python check above again.
 
-Important:
-
-```text
-cuda available True
-gpu NVIDIA H100 ...
-```
-
-If CUDA is not available, stop and send me the error/output.
+If CUDA is still not available, please just send me the output. Please do not
+fight the cluster for too long.
 
 ## Step 3: Run a Short Smoke Test
 
-This checks that the benchmark works. It is not the final measurement.
+This is just a tiny test to make sure the benchmark can run. It is not the real
+measurement.
 
 ```bash
 PYTHON=python3 \
@@ -119,7 +128,7 @@ Then summarize it:
 python3 summarize_results.py h100_profile_smoke
 ```
 
-If this fails, send me:
+If this fails, please send me these files and I will debug it:
 
 ```text
 h100_profile_smoke/logs/profile_smoke.out
@@ -127,13 +136,13 @@ h100_profile_smoke/logs/profile_smoke.err
 h100_profile_smoke/telemetry/smoke.environment.txt
 ```
 
-If it succeeds, continue.
+If it succeeds, you are through the annoying setup part.
 
 ## Step 4: Run the Real Measurement
 
-This runs 5 repeats. It may take a while.
+This runs 5 repeats and may take a while. Thank you, truly.
 
-Copy and paste this whole block:
+Please copy and paste this whole block:
 
 ```bash
 OUT_DIR=$PWD/h100_profile_$(hostname)_$(date +%Y%m%d_%H%M)
@@ -159,9 +168,7 @@ Please send me the `.tar.gz` file printed at the end.
 
 ## Step 5: Quick Sanity Check Before Sending
 
-After the real measurement finishes, look at the summary output.
-
-It should have rows like:
+After the real measurement finishes, the summary output should have rows like:
 
 ```text
 run,host,gpu,torch,cuda,GA1_ms,GA2_ms,GA4_ms,T_fwdbwd_ms,...
@@ -172,7 +179,7 @@ r04,...
 r05,...
 ```
 
-Please tell me if you see any of these problems:
+Could you please tell me if you notice any of these:
 
 ```text
 gpu is not H100
@@ -183,11 +190,13 @@ temperature is extremely high
 any repeat failed before writing tc_profile_*.json
 ```
 
-Do not delete failed runs; include them in the tarball so I can debug.
+Please keep failed runs too. Failed logs are useful, and I would rather receive
+too much information than accidentally miss the clue.
 
 ## If You Use SLURM Instead
 
-If your cluster uses SLURM and you do not have an interactive GPU shell, edit:
+If the cluster uses SLURM and you do not have an interactive GPU shell, please
+edit:
 
 ```text
 submit_slurm_h100_template.sh
@@ -208,7 +217,7 @@ python3 summarize_results.py h100_profile_outputs_* | tee slurm_summary.csv
 tar -czf h100_profile_slurm_outputs.tar.gz h100_profile_outputs_* logs slurm_summary.csv
 ```
 
-Send:
+Please send:
 
 ```text
 h100_profile_slurm_outputs.tar.gz
@@ -229,7 +238,7 @@ telemetry/<run>.nvidia_smi_q_before.txt
 telemetry/<run>.nvidia_smi_q_after.txt
 ```
 
-The most important final numbers are:
+The most important final numbers for me are:
 
 ```text
 GA1_ms
@@ -245,11 +254,13 @@ P-state
 active throttle reasons
 ```
 
-## Notes
+## Tiny Notes
 
 - Please run this on an H100 if possible.
-- Please do not run other heavy GPU jobs on the same GPU during the test.
-- Please do not edit the Python script unless it fails and you need to tell me
-  what changed.
-- The smoke test is only for checking setup. The real measurement is the 5-repeat
-  run in Step 4.
+- If possible, please do not run other heavy GPU jobs on the same GPU during the
+  test.
+- Please do not edit the Python script unless it fails and you need to change
+  something to make it run. If you do change anything, just tell me what changed.
+- The smoke test is only for setup. The real measurement is the 5-repeat run in
+  Step 4.
+- Thank you again. I owe you one.
